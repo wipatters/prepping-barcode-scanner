@@ -124,12 +124,27 @@ async function startScanner() {
 
                 const barcode = result.getText();
 
-                barcodeText.textContent = barcode;
-                statusText.textContent = "Barcode scanned successfully!";
+               barcodeText.textContent = barcode;
+statusText.textContent = "Barcode scanned successfully!";
 
-                stopScanner();
+stopScanner();
 
-                // Wix integration will be added in a later step.
+// Send barcode back to the Wix window that opened the scanner.
+if (window.opener && !window.opener.closed) {
+    window.opener.postMessage(
+        {
+            type: "barcodeScanned",
+            barcode: barcode
+        },
+        "https://spyderridershub.wixsite.com"
+    );
+
+    statusText.textContent =
+        "Barcode sent to Wix: " + barcode;
+} else {
+    statusText.textContent =
+        "Barcode scanned. Return to Wix to enter it.";
+}
             }
         );
 
