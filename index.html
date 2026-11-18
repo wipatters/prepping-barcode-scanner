@@ -129,22 +129,19 @@ statusText.textContent = "Barcode scanned successfully!";
 
 stopScanner();
 
-// Send barcode back to the Wix window that opened the scanner.
-if (window.opener && !window.opener.closed) {
-    window.opener.postMessage(
-    {
-        type: "barcodeScanned",
-        barcode: barcode
-    },
-    "https://spyderridershub.wixsite.com"
+// Return the scanned barcode to Wix automatically.
+const returnUrl = new URL(
+    "https://spyderridershub.wixsite.com/prepping/add-inventory"
 );
 
-    statusText.textContent =
-        "Barcode sent to Wix: " + barcode;
-} else {
-    statusText.textContent =
-        "Barcode scanned. Return to Wix to enter it.";
-}
+returnUrl.searchParams.set("barcode", barcode);
+
+statusText.textContent =
+    "Barcode scanned! Returning to inventory...";
+
+setTimeout(() => {
+    window.location.replace(returnUrl.toString());
+}, 2000);
             }
         );
 
