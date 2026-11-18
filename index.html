@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prepping Inventory Barcode Scanner</title>
+
+<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f7f7f2;
+        color: #222;
+        text-align: center;
+        padding: 20px;
+        margin: 0;
+    }
+
+    h2 {
+        color: #336188;
+    }
+
+    video {
+        width: 100%;
+        max-width: 560px;
+        background: #111;
+        border: 3px solid #336188;
+        border-radius: 10px;
+    }
+
+    button {
+        background: #336188;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 12px 22px;
+        margin: 10px 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button:disabled {
+        opacity: 0.5;
+    }
+
+    #status {
+        margin: 15px auto;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    #barcode {
+        font-size: 24px;
+        color: #25845A;
+        margin-top: 15px;
+        overflow-wrap: anywhere;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>Prepping Inventory Barcode Scanner</h2>
+
+<video id="video" autoplay muted playsinline></video>
+
+<div id="status">Scanner ready.</div>
+<div id="barcode"></div>
+
+<button id="startButton">Start Camera</button>
+<button id="stopButton" disabled>Stop Camera</button>
+
+<script>
+const video = document.getElementById("video");
+const statusText = document.getElementById("status");
+const barcodeText = document.getElementById("barcode");
+const startButton = document.getElementById("startButton");
+const stopButton = document.getElementById("stopButton");
+
+let reader = null;
+let scanning = false;
+
+function stopScanner() {
+    scanning = false;
+
+    if (reader) {
+        reader.reset();
+        reader = null;
+    }
+
+    if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+    }
+
+    startButton.disabled = false;
+    stopButton.disabled = true;
+}
+
+async function startScanner() {
+    if (scanning) return;
+
+    if (!window.ZXing) {
+        statusText.textContent = "Barcode scanner library failed to load.";
+        return;
+    }
+
+    scanning = true;
+    startButton.disabled = true;
+    stopButton.disabled = false;
+    barcodeText.textContent = "";
+    statusText.textContent = "Starting camera...";
+
+    reader = new ZXing.BrowserMultiFormatReader();
+
+    try {
+        await reader.decodeFromVideoDevice(
+            null,
+            video,
+            (result, error) => {
+                if (!scanning || !result) return;
+
+                const barcode = result.getText();
+
+                barcodeText.textContent = barcode;
+                statusText.textContent = "Barcode scanned successfully!";
+
+                stopScanner();
+
+                // Wix integration will be added in a later step.
+            }
+        );
+
+        if (scanning) {
+            statusText.textContent =
+                "Point your product barcode toward the camera.";
+        }
+    } catch (error) {
+        stopScanner();
+        statusText.textContent = "Camera error: " + error.message;
+    }
+}
+
+startButton.addEventListener("click", startScanner);
+
+stopButton.addEventListener("click", () => {
+    stopScanner();
+    statusText.textContent = "Scanner stopped.";
+});
+
+window.addEventListener("pagehide", stopScanner);
+</script>
+
+</body>
+</html>
