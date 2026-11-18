@@ -132,12 +132,12 @@ stopScanner();
 // Send barcode back to the Wix window that opened the scanner.
 if (window.opener && !window.opener.closed) {
     window.opener.postMessage(
-        {
-            type: "barcodeScanned",
-            barcode: barcode
-        },
-        "https://spyderridershub.wixsite.com"
-    );
+    {
+        type: "barcodeScanned",
+        barcode: barcode
+    },
+    "https://spyderridershub.wixsite.com"
+);
 
     statusText.textContent =
         "Barcode sent to Wix: " + barcode;
